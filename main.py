@@ -10,7 +10,7 @@ from generate_image import generate_image
 load_dotenv()
 
 st.set_page_config(
-    page_title="AI Flux Image Generator",
+    page_title="Art Machine AI",
     page_icon="🖼️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -65,24 +65,18 @@ def load_images():
     return images
 
 # Streamlit app
-col1, col2 = st.columns([1, 18])
+col1, col2 = st.columns([18, 1])
 with col1:
-    st.image("brain_boost_2.png", width=50)  # Load image using st.image()
-
-with col2:
     st.markdown(
         """
-        <a href="https://brain-boost-ai-pros.vercel.app" style="text-decoration: none; color: inherit;">
-            <h1 style="margin-top: -24px;">AI Flux Image Generator</h1>
-        </a>
-        <a href="https://brain-boost-ai-pros.vercel.app" style="text-decoration: none; color: inherit;">
-            <p style="font-size: 14px; margin: -20px 2px;">Click here to visit Brain Boost for custom AI solutions</p>
-        </a>
+        
+            <h1 style="margin-top: -24px;">Art Machine AI</h1>
+        
         """,
         unsafe_allow_html=True
     )
 
-st.subheader("Generate images with the best fast AI image generator")
+st.subheader("Generate images with AI")
 
 # Sidebar
 st.sidebar.title("Settings")
