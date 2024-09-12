@@ -1,4 +1,5 @@
 import streamlit as st
+from dotenv import load_dotenv
 from io import BytesIO
 from PIL import Image
 import os
@@ -6,8 +7,7 @@ import uuid
 
 from generate_image import generate_image
 
-# Use Streamlit secrets instead of dotenv
-api_key = st.secrets["API_KEY"]
+load_dotenv()
 
 st.set_page_config(
     page_title="AI Flux Image Generator",
@@ -174,7 +174,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 
 
