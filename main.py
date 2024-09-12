@@ -94,7 +94,7 @@ if st.sidebar.button("Reset"):
     st.sidebar.success("Page has been reset. Your generated images are still available in the showcase.")
 
 # Main content area
-prompt = st.text_input("Enter a prompt then scroll to the bottom for your image:", value=" ")
+prompt = st.text_input("Enter a prompt then scroll to the bottom:", value=" ")
 
 # Generate Image button
 if st.button("Generate Image"):
