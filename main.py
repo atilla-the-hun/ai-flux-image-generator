@@ -4,6 +4,7 @@ from io import BytesIO
 from PIL import Image
 import os
 import uuid
+import base64
 
 from generate_image import generate_image
 
@@ -54,7 +55,7 @@ def get_aspect_ratio(image):
 
 def load_images():
     """Load all images from the images directory"""
-    images = {'1:1': [], '16:9': [], '21:9': [], '3:2': [], '2:3': [], '4:5': [], '5:4': [], '9:16': [], '9:21': []}
+    images = {'1:1': [], '16:9': [], '21:9': [], '3:2': [], '2:3': [], '4:5': [], '9:16': [], '9:21': []}
     for filename in os.listdir(IMAGES_DIR):
         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             filepath = os.path.join(IMAGES_DIR, filename)
@@ -64,17 +65,32 @@ def load_images():
                 images[aspect_ratio].append((filename, img))
     return images
 
+def image_to_base64(image):
+    """Convert image to base64 string"""
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode()
+
 # Streamlit app
-col1, col2 = st.columns([18, 1])
-with col1:
-    st.markdown(
-        """
-        
-            <h1 style="margin-top: -24px;">Art Machine AI</h1>
-        
-        """,
-        unsafe_allow_html=True
-    )
+# Load the image you want to display next to the title
+image_path = "./brain_boost_2.png"  # Replace with the actual path to your image
+image = Image.open(image_path)
+
+# Create a custom HTML layout for the title and image
+st.markdown(
+    """
+    <div style="display: flex; align-items: center; justify-content: flex-start;">
+        <div style="display: flex; flex-direction: column; align-items: flex-start;">
+            <h1 style="margin-top: -24px; margin-right: 10px;">Art Machine AI</h1>
+            <h3 style="margin-top: -10px; margin-right: 10px;"><a href="https://brain-boost-ai-pros.vercel.app" target="_blank" style="text-decoration: none; color: inherit;">by Brain Boost</a></h3>
+        </div>
+        <a href="https://brain-boost-ai-pros.vercel.app" target="_blank">
+            <img src="data:image/png;base64,{}" width="50" style="margin-left: 10px;" />
+        </a>
+    </div>
+    """.format(image_to_base64(image)),
+    unsafe_allow_html=True
+)
 
 st.subheader("Generate images with AI")
 
@@ -83,9 +99,8 @@ st.sidebar.title("Settings")
 
 # Add dropdown boxes in the sidebar
 num_outputs = st.sidebar.number_input("Number of Outputs", value=1, min_value=1, max_value=4, step=1)
-aspect_ratio = st.sidebar.selectbox("Aspect Ratio", ["1:1", "16:9", "21:9", "3:2", "2:3", "4:5", "5:4", "9:16", "9:21"], index=0)
+aspect_ratio = st.sidebar.selectbox("Aspect Ratio", ["1:1", "16:9", "21:9", "3:2", "2:3", "4:5", "9:16", "9:21"], index=0)
 output_format = st.sidebar.selectbox("Output Format", ["jpg", "png", "webp"], index=0)
-output_quality = st.sidebar.number_input("Output Quality", value=100, min_value=0, max_value=100, step=1)
 
 # Add Reset button to the sidebar
 if st.sidebar.button("Reset"):
@@ -94,44 +109,22 @@ if st.sidebar.button("Reset"):
     st.sidebar.success("Page has been reset. Your generated images are still available in the showcase.")
 
 # Main content area
-prompt = st.text_input("Enter a prompt then scroll to the bottom:", value=" ")
+prompt = st.text_input("Enter a prompt - Copyrighted material may produce undesirable results:", value=" ")
 
 # Generate Image button
 if st.button("Generate Image"):
     with st.spinner("Generating image..."):
-        generated_images, elapsed_time = generate_image(prompt, num_outputs, aspect_ratio, output_format, output_quality)
-        st.write(f"Image generated in {elapsed_time:.2f} seconds")
-        
-        # Save generated images to disk and update session state
-        st.session_state.full_size_images = []
-        for img in generated_images:
-            filename = save_image(img, format=output_format)
-            st.session_state.full_size_images.append((img, filename))
-
-# Display images by aspect ratio
-st.subheader("Image Showcase")
-saved_images = load_images()
-has_images = any(images for images in saved_images.values())
-
-if has_images:
-    for ratio, images in saved_images.items():
-        if images:
-            st.subheader(f"Aspect Ratio: {ratio}")
-            columns = st.columns(4)  # Create 4 columns for the grid
-            for i, (filename, img) in enumerate(images):
-                with columns[i % 4]:
-                    # Create a unique key for each image
-                    key = f"img_{i}_{ratio}"
-                    # Display thumbnail without the fullscreen hover icon
-                    st.image(img, width=100, use_column_width=True)
-                    # Create a button that when clicked will open the full-size image
-                    button_col = st.columns([1, 2, 1])  # Create three columns for centering
-                    with button_col[1]:  # Use the middle column
-                        if st.button("Full Size", key=key, help="Click to view the full-size image"):
-                            st.session_state.full_size_images = [(img, filename)]
-
-else:
-    st.write("No images generated yet.")
+        try:
+            generated_images, elapsed_time = generate_image(prompt, num_outputs, aspect_ratio, output_format)
+            st.write(f"Image generated in {elapsed_time:.2f} seconds")
+            
+            # Save generated images to disk and update session state
+            st.session_state.full_size_images = []
+            for img in generated_images:
+                filename = save_image(img, format=output_format)
+                st.session_state.full_size_images.append((img, filename))
+        except Exception as e:
+            st.error(f"Error generating image: {e}")
 
 # Automatically display the full-size images if new ones were generated
 if st.session_state.get('full_size_images', []):
@@ -152,6 +145,41 @@ if st.session_state.get('full_size_images', []):
 else:
     st.write("No images generated yet.")
 
+# Display images by aspect ratio
+st.subheader("Image Showcase")
+saved_images = load_images()
+has_images = any(images for images in saved_images.values())
+
+if has_images:
+    for ratio, images in saved_images.items():
+        if images:
+            st.subheader(f"Aspect Ratio: {ratio}")
+            columns = st.columns(4)  # Create 4 columns for the grid
+            for i, (filename, img) in enumerate(images):
+                with columns[i % 4]:
+                    # Create a unique key for each image
+                    key = f"img_{i}_{ratio}"
+                    # Display thumbnail without the fullscreen hover icon
+                    st.image(img, width=100, use_column_width=True)
+                    # Create a button that when clicked will open the full-size image
+                    button_col = st.columns([1, 2, 1])  # Create three columns for centering
+                    with button_col[1]:  # Use the middle column
+                        # Add download button for the full-size image
+                        img_byte_arr = BytesIO()
+                        save_format = 'JPEG' if filename.lower().endswith('.jpg') else filename.split('.')[-1].upper()
+                        img.save(img_byte_arr, format=save_format)
+                        img_byte_arr = img_byte_arr.getvalue()
+
+                        st.download_button(
+                            label="Download",
+                            data=img_byte_arr,
+                            file_name=filename,
+                            mime=f"image/{filename.split('.')[-1]}"
+                        )
+
+else:
+    st.write("No images generated yet.")
+
 # Adding custom CSS to remove fullscreen icon on hover and move buttons slightly to the right
 st.markdown(
     """
@@ -159,11 +187,11 @@ st.markdown(
     /* Remove fullscreen icon when hovering over images */
     button[title="View fullscreen"] {
         display: none !important;
-    }
+    /*}*/
     /* Move buttons slightly to the right */
-    .stButton button {
-        margin-left: 15px;
-    }
+    /*.stButton button { */
+    /*    margin-left: 15px; */
+    /*} */
     </style>
     """,
     unsafe_allow_html=True

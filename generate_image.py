@@ -4,7 +4,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-def generate_image(prompt, num_outputs, aspect_ratio, output_format, output_quality):
+def generate_image(prompt, num_outputs, aspect_ratio, output_format, output_quality=100):
     # Start the image generation process
     start_time = time.time()
     output = replicate.run(
