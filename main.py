@@ -170,12 +170,7 @@ if has_images:
                         img.save(img_byte_arr, format=save_format)
                         img_byte_arr = img_byte_arr.getvalue()
 
-                        st.download_button(
-                            label="Download",
-                            data=img_byte_arr,
-                            file_name=filename,
-                            mime=f"image/{filename.split('.')[-1]}"
-                        )
+                        
 
 else:
     st.write("No images generated yet.")
